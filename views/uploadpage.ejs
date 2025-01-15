@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Upload</title>
+</head>
+<body>
+
+<h1>Upload a Photo with QR Code</h1>
+
+<form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="photo" id="photo" accept="image/*" required>
+    <button onclick="uploadPhoto()" type="button">Upload Photo</button>
+</form>
+
+<h3>Response:</h3>
+<pre id="response"></pre>
+
+<script>
+    const form = document.getElementById('uploadForm');
+    const responseElement = document.getElementById('response');
+
+    function uploadPhoto() {
+        var photo = document.getElementById('photo').files[0];
+        const formData = new FormData();
+        formData.append('photo', photo);
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json()).then(data => {
+            console.log(data);
+        })
+        // responseElement.textContent = JSON.stringify(data, null, 2);
+    }
+</script>
+
+</body>
+</html>
