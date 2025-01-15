@@ -9,7 +9,7 @@ const jsQR = require('jsqr');
 
 // Create an Express application
 const app = express();
-const port = 3000;
+const port = 5000;
 
 // Enable CORS (optional for development)
 app.use(cors());
@@ -35,9 +35,17 @@ if (!fs.existsSync('uploads')) {
     fs.mkdirSync('uploads');
 }
 
+app.get('/',(req,res)=>{
+    res.render('index',{title: 'Welcome to Render'});
+})
+
 // Route to generate QR code
 app.get('/generate-qr', (req, res) => {
-    const data = 'http://localhost:3000/upload-qr'; // URL or data to encode in QR code
+
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseURL = `${protocol}://${host}`;
+    const data = `${baseURL}/upload-qr`; // URL or data to encode in QR code
 
     QRCode.toDataURL(data, (err, qrCodeUrl) => {
         if (err) {
