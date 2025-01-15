@@ -64,6 +64,14 @@ app.get("/upload-qr",(req,res)=>{
     res.render('uploadpage');
 })
 
+app.get("/photos",(req,res)=>{
+    res.render('photos');
+})
+
+app.get("/getphotos",(req,res)=>{
+
+})
+
 // Route to handle photo upload and QR code scanning
 app.post('/upload', upload.single('photo'), async (req, res) => {
     const imagePath = path.join(__dirname, req.file.path);
@@ -79,7 +87,7 @@ app.post('/upload', upload.single('photo'), async (req, res) => {
         const image = await sharp(imagePath).raw().toBuffer();
         const width = await sharp(imagePath).metadata().then((meta) => meta.width);
         const height = await sharp(imagePath).metadata().then((meta) => meta.height);
-
+        console.log(image);
         // Scan the image for QR code using jsQR
         const code = jsQR(image, width, height);
         if (code) {
