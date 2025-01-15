@@ -71,7 +71,7 @@ app.get("/photos",(req,res)=>{
 })
 
 app.get("/getphotos",(req,res)=>{
-
+    res.json(imageArray);
 })
 
 // Route to handle photo upload and QR code scanning
