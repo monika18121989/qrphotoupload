@@ -11,6 +11,8 @@ const jsQR = require('jsqr');
 const app = express();
 const port = 5000;
 
+var imageArray = [];
+
 // Enable CORS (optional for development)
 app.use(cors());
 
@@ -76,6 +78,9 @@ app.get("/getphotos",(req,res)=>{
 app.post('/upload', upload.single('photo'), async (req, res) => {
     const imagePath = path.join(__dirname, req.file.path);
     console.log(imagePath);
+    const imgName = imagePath.split('/').pop();
+    imageArray.push(imgName);
+    console.log(imageArray);
     console.log("--------");
     // Scan QR code from the uploaded image
     try {
