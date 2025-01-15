@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Upload</title>
+</head>
+<body onload="getPhotos()">
+
+<h1>Photos</h1>
+
+<div id="allphotos" style="border: 2px solid #000; background-color: white;">
+
+</div>
+
+
+<script>
+    function getPhotos() {
+        fetch('/getphotos').then(response => response.json()).then(data => {
+            console.log(data);
+            var s = "";
+            data.forEach(element => {
+                s += `<img src="../uploads/${element}" alt="${element}" />`;
+            })
+            document.getElementById("allphotos").innerHTML = s;
+            // responseElement.textContent = JSON.stringify(data, null, 2);
+        })
+    }
+</script>
+
+</body>
+</html>
