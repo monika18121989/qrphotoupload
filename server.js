@@ -11,6 +11,8 @@ const jsQR = require('jsqr');
 const app = express();
 const port = 5000;
 
+var imageArray = [];
+
 // Enable CORS (optional for development)
 app.use(cors());
 
@@ -36,18 +38,21 @@ if (!fs.existsSync('uploads')) {
 }
 
 app.get('/',(req,res)=>{
-    res.render('index',{title: 'Welcome to Vercel'});
+    res.render('index',{title: 'Welcome to Render'});
 })
 
 // Route to generate QR code
 app.get('/generate-qr', (req, res) => {
-    const data = 'http://localhost:3000/upload-qr'; // URL or data to encode in QR code
+
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const baseURL = `${protocol}://${host}`;
+    const data = `${baseURL}/upload-qr`; // URL or data to encode in QR code
 
     QRCode.toDataURL(data, (err, qrCodeUrl) => {
         if (err) {
             return res.status(500).send('Error generating QR code.');
         }
-
         res.send(`
       <h1>QR Code</h1>
       <img src="${qrCodeUrl}" alt="QR Code"/>
@@ -60,37 +65,64 @@ app.get("/upload-qr",(req,res)=>{
     res.render('uploadpage');
 })
 
+app.get("/photos",(req,res)=>{
+    res.render('photos');
+})
+
+app.get("/getphotos",(req,res)=>{
+    res.json(imageArray);
+})
+
 // Route to handle photo upload and QR code scanning
-app.post('/upload', upload.single('photo'), async (req, res) => {
-    const imagePath = path.join(__dirname, req.file.path);
-    console.log(imagePath);
-    console.log("--------");
-    // Scan QR code from the uploaded image
-    try {
-        if (!req.file) {
-            return res.status(400).send('No image uploaded.');
-        }
+app.post('/upload', upload.array('photo',10), async (req, res) => {
+    console.log(req.files);
+    console.log(req.files.length);
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).send('No images uploaded.');
+    }
+    if(req.files.length > 10){
+        return res.status(400).send('Only 10 photos are allowed');
+    }
 
-        // Read the image with Sharp
-        const image = await sharp(imagePath).raw().toBuffer();
-        const width = await sharp(imagePath).metadata().then((meta) => meta.width);
-        const height = await sharp(imagePath).metadata().then((meta) => meta.height);
+    let qrResults = [];
 
-        // Scan the image for QR code using jsQR
-        const code = jsQR(image, width, height);
-        if (code) {
+    try{
+        req.files.forEach(async(file) => {
+            console.log(file);
+            const imagePath = path.join(__dirname, file.path);
+
+            // Process each image with sharp
+            const imageBuffer = await sharp(imagePath)
+                .resize(800) // Optional: Resize for better performance
+                .greyscale() // Convert to grayscale for QR code scanning
+                .raw()
+                .toBuffer();
+
+            // Get metadata (width, height) for QR scanning
+            const { width, height } = await sharp(imagePath).metadata();
+
+            // Scan the image for a QR code
+            const code = jsQR(imageBuffer, width, height);
+            if (code) {
+                qrResults.push({
+                    fileName: file.filename,
+                    qrData: code.data // Extracted QR code data
+                });
+            } else {
+                qrResults.push({
+                    fileName: file.filename,
+                    message: 'No QR code found.'
+                });
+            }
+            // Return results for all uploaded images
             return res.json({
-                message: 'QR code scanned successfully!',
-                qrData: code.data,
-                filePath: req.file.path
+                message: 'QR code scanning completed.',
+                results: qrResults
             });
-        } else {
-            return res.status(400).send('No QR code found.');
-        }
-
-    } catch (err) {
-        console.error('Error processing image:', err);
-        res.status(500).send('Error processing image.');
+        })
+    }catch(error){
+        console.error('Error processing images:', error);
+        return res.status(500).send('Error processing images.');
     }
 });
 
