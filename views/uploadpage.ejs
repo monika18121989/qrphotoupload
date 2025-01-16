@@ -11,14 +11,14 @@
 <div class="container border rounded">
     <div class="row mt-2">
         <div class="col-12">
-            <h1 class="text-center mt-1">Upload a Photo</h1>
+            <h1 class="text-center mt-1 text-primary">Upload a Photo</h1>
         </div>
     </div>
     <div class="row mt-2">
         <div class="col-12">
-            <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" name="photo" id="photo" class="form-control" accept="image/*" required>
-                <button onclick="uploadPhoto()" type="button" class="btn btn-secondary">Upload Photo</button>
+            <form id="uploadForm" enctype="multipart/form-data" method="post" action="/upload">
+                <input type="file" name="photo" id="photo" multiple class="form-control" accept="image/*" required>
+                <button type="submit" class="btn btn-primary m-2">Upload Photo</button>
             </form>
         </div><hr />
     </div>
@@ -35,16 +35,22 @@
     const responseElement = document.getElementById('response');
 
     function uploadPhoto() {
-        var photo = document.getElementById('photo').files[0];
-        const formData = new FormData();
-        formData.append('photo', photo);
-        fetch('/upload', {
-            method: 'POST',
-            body: formData
-        }).then(response => response.json()).then(data => {
-            console.log(data);
-        })
-        // responseElement.textContent = JSON.stringify(data, null, 2);
+        var photo = document.getElementById('photo').files;
+        alert(photo.length);
+        if(photo){
+            const formData = new FormData();
+            formData.append('photo', photo);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
+                console.log(data);
+            })
+            // responseElement.textContent = JSON.stringify(data, null, 2);
+        }else{
+            alert('Please select a file');
+        }
+
     }
 </script>
 
