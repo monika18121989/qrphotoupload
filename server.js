@@ -11,8 +11,6 @@ const jsQR = require('jsqr');
 const app = express();
 const port = 5000;
 
-var imageArray = [];
-
 // Enable CORS (optional for development)
 app.use(cors());
 
@@ -38,16 +36,12 @@ if (!fs.existsSync('uploads')) {
 }
 
 app.get('/',(req,res)=>{
-    res.render('index',{title: 'Welcome to Render'});
+    res.render('index',{title: 'Welcome to Vercel'});
 })
 
 // Route to generate QR code
 app.get('/generate-qr', (req, res) => {
-
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const baseURL = `${protocol}://${host}`;
-    const data = `${baseURL}/upload-qr`; // URL or data to encode in QR code
+    const data = 'http://localhost:3000/upload-qr'; // URL or data to encode in QR code
 
     QRCode.toDataURL(data, (err, qrCodeUrl) => {
         if (err) {
@@ -66,21 +60,10 @@ app.get("/upload-qr",(req,res)=>{
     res.render('uploadpage');
 })
 
-app.get("/photos",(req,res)=>{
-    res.render('photos');
-})
-
-app.get("/getphotos",(req,res)=>{
-    res.json(imageArray);
-})
-
 // Route to handle photo upload and QR code scanning
 app.post('/upload', upload.single('photo'), async (req, res) => {
     const imagePath = path.join(__dirname, req.file.path);
     console.log(imagePath);
-    const imgName = imagePath.split('/').pop();
-    imageArray.push(imgName);
-    console.log(imageArray);
     console.log("--------");
     // Scan QR code from the uploaded image
     try {
@@ -92,7 +75,7 @@ app.post('/upload', upload.single('photo'), async (req, res) => {
         const image = await sharp(imagePath).raw().toBuffer();
         const width = await sharp(imagePath).metadata().then((meta) => meta.width);
         const height = await sharp(imagePath).metadata().then((meta) => meta.height);
-        console.log(image);
+
         // Scan the image for QR code using jsQR
         const code = jsQR(image, width, height);
         if (code) {
