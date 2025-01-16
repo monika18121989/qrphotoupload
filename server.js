@@ -100,9 +100,16 @@ app.post('/upload', upload.array('photo',10), async (req, res) => {
 
             // Get metadata (width, height) for QR scanning
             const { width, height } = await sharp(imagePath).metadata();
-
+            // Log metadata for debugging
+            console.log('Image Width:', width, 'Height:', height);
+            // Create ImageData object for jsQR
+            const imageData = {
+                width: width,
+                height: height,
+                data: imageBuffer
+            };
             // Scan the image for a QR code
-            const code = jsQR(imageBuffer, width, height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
             if (code) {
                 qrResults.push({
                     fileName: file.filename,
